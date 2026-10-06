@@ -21,7 +21,7 @@ const relevant = (sec) => !(sec.id === 'network' && A.host && A.host !== 'onprem
 
 function header() {
   return `<div class="top"><div class="wrap">
-    <div class="titlebar"><h1>TTAR</h1><p>Pick what you hear. See what it means.</p>
+    <div class="titlebar"><h1>TTAR</h1><p>Pick what the IT team says. See what it means.</p>
       <div class="ctl"><button data-act="all" aria-pressed="${showAll}">Show all meanings</button><button data-act="reset">Reset</button></div></div>
     <nav class="map" aria-label="Sections">${SECTIONS.map((s) => `<button data-act="jump" data-v="${s.id}"><span class="dot ${secState(s) || ''}"></span>${esc(s.title)}</button>`).join('')}</nav>
   </div></div>`;
