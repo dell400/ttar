@@ -23,7 +23,7 @@ function header() {
   return `<div class="top"><div class="wrap">
     <div class="titlebar"><h1>TTAR</h1><p>Pick what the IT team says. See what it means.</p>
       <div class="ctl"><button data-act="all" aria-pressed="${showAll}">Show all meanings</button><button data-act="reset">Reset</button></div></div>
-    <nav class="map" aria-label="Sections">${SECTIONS.map((s) => `<button data-act="jump" data-v="${s.id}"><span class="dot ${secState(s) || ''}"></span>${esc(s.title)}</button>`).join('')}</nav>
+    <nav class="map" aria-label="Sections">${SECTIONS.map((s) => `<button data-act="jump" data-v="${s.id}"><span class="st ${secState(s) || 'none'}"></span>${esc(s.title)}</button>`).join('')}</nav>
   </div></div>`;
 }
 
@@ -40,16 +40,16 @@ function question(q) {
   const sel = pick(q);
   return `<div class="q">
     <p class="ask">${gloss(q.ask)}</p>
-    <div class="chips" role="group">${q.a.map((a) => `<button class="chip" data-act="pick" data-q="${q.id}" data-v="${a.id}" aria-pressed="${sel?.id === a.id}" title="${esc(a.m)}"><span class="dot ${a.st}"></span>${esc(a.l)}</button>`).join('')}</div>
+    <div class="chips" role="group">${q.a.map((a) => `<button class="chip ${a.st}" data-act="pick" data-q="${q.id}" data-v="${a.id}" aria-pressed="${sel?.id === a.id}" title="${esc(a.m)}"><span class="st ${a.st}"></span>${esc(a.l)}</button>`).join('')}</div>
     ${sel ? answerPanel(sel) : ''}
-    ${showAll ? `<ul class="all">${q.a.map((a) => `<li><span class="dot ${a.st}"></span><span><b>${esc(a.l)}.</b> ${gloss(a.m)}${a.go ? ` <i>→ ${esc(byId[a.go].title)}</i>` : ''}</span></li>`).join('')}</ul>` : ''}
+    ${showAll ? `<ul class="all">${q.a.map((a) => `<li><span class="st ${a.st}"></span><span><b>${esc(a.l)}.</b> ${gloss(a.m)}${a.go ? ` <i>→ ${esc(byId[a.go].title)}</i>` : ''}</span></li>`).join('')}</ul>` : ''}
   </div>`;
 }
 
 function section(s) {
   const st = secState(s);
   return `<section class="sec ${relevant(s) ? '' : 'dim'}" id="s-${s.id}">
-    <div class="num ${st || ''}">${s.n}</div>
+    <div class="num ${st || 'none'}">${s.n}</div>
     <h2>${esc(s.title)}</h2><p class="sub">${esc(s.sub)}</p>
     ${s.q.map(question).join('')}
     ${s.notes ? `<details class="notes"><summary>Vendor notes</summary>${s.notes.map(([v, rows]) => `<div class="vend">${esc(v)}</div><table>${rows.map(([k, m]) => `<tr><td>${esc(k)}</td><td>${esc(m)}</td></tr>`).join('')}</table>`).join('')}</details>` : ''}
@@ -62,17 +62,17 @@ function rail() {
   const any = anySel != null ? ANY[anySel] : null;
   return `<aside class="rail">
     <div class="panel"><h3>What it adds up to</h3>
-      ${combos.length ? `<ul>${combos.map((c) => `<li><span class="dot ${c.st}"></span><span>${esc(c.t)}</span></li>`).join('')}</ul>` : '<p class="empty">Pick answers and the combinations show up here.</p>'}
+      ${combos.length ? `<ul>${combos.map((c) => `<li><span class="st ${c.st}"></span><span>${esc(c.t)}</span></li>`).join('')}</ul>` : '<p class="empty">Pick answers and the combinations show up here.</p>'}
     </div>
     <div class="panel"><h3>After the call</h3>
-      ${todo.length ? `<ul>${todo.map((t) => `<li><span class="dot pend"></span><span>${esc(t)}</span></li>`).join('')}</ul>` : '<p class="empty">Nothing yet.</p>'}
+      ${todo.length ? `<ul>${todo.map((t) => `<li><span class="st todo"></span><span>${esc(t)}</span></li>`).join('')}</ul>` : '<p class="empty">Nothing yet.</p>'}
     </div>
     <div class="panel any"><h3>If they say…</h3>
       <div class="chips">${ANY.map((x, i) => `<button class="chip" data-act="any" data-v="${i}" aria-pressed="${anySel === i}">${esc(x.l)}</button>`).join('')}</div>
       ${any ? `<div class="mean"><p>${esc(any.m)}</p><p class="say"><span class="lab">Say</span>“${esc(any.say)}”</p></div>` : ''}
     </div>
     <div class="panel aux"><h3>Legend</h3>
-      <ul><li><span class="dot ok"></span>Good</li><li><span class="dot pend"></span>Needs confirmation</li><li><span class="dot unk"></span>Unknown</li><li><span class="dot no"></span>Blocked</li></ul>
+      <ul><li><span class="st ok"></span>Good</li><li><span class="st pend"></span>Needs confirmation</li><li><span class="st unk"></span>Unknown</li><li><span class="st no"></span>Blocked</li></ul>
     </div>
     <div class="panel aux"><h3>Terms</h3>
       <div class="terms">${Object.entries(TERMS).map(([k, v]) => `<div><b>${esc(k)}</b> <span>${esc(v)}</span></div>`).join('')}</div>
