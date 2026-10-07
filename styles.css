@@ -62,11 +62,11 @@ button.chip:hover { filter: brightness(.95); }
 .chip.ok[aria-pressed="true"] { background: var(--ok); } .chip.pend[aria-pressed="true"] { background: var(--pend); } .chip.no[aria-pressed="true"] { background: var(--no); } .chip.unk[aria-pressed="true"] { background: var(--unk); }
 .chip[aria-pressed="true"]:not(.ok):not(.pend):not(.unk):not(.no) { background: var(--ink); color: var(--bg); }
 
-.mean { margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: var(--chip); display: grid; gap: 6px; font-size: 14px; }
+.mean { margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); display: grid; gap: 6px; font-size: 14px; }
 .mean p { margin: 0; }
 .mean .lab { color: var(--ink2); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; margin-right: 6px; }
 .mean .say { font-style: italic; }
-.mean .go { color: var(--accent); font-weight: 400; }
+.mean .go { color: var(--orange); font-weight: 500; }
 .mean .go:hover { text-decoration: underline; }
 .all { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 4px; font-size: 13.5px; color: var(--ink2); }
 .all b { font-weight: 500; }
