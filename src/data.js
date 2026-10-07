@@ -340,24 +340,7 @@ export const SECTIONS = [
     ],
   },
   {
-    id: 'sharing', n: 12, title: 'Sharing', sub: 'Letting neighboring agencies see their data in Peregrine.',
-    q: [
-      { id: 'h_scope', ask: 'Do they want neighboring agencies to see their data? Who has authority to approve that?', a: [
-        { id: 'yes', l: 'Yes', st: 'pend', m: 'They need a signed agreement. Next question.' },
-        { id: 'no', l: 'No', st: 'ok', m: 'Done.' },
-        { id: 'maybe', l: 'Interested, haven’t decided', st: 'unk', m: 'Not turned on until they decide.', do: 'CA / AE: sharing follow-up' },
-        { id: 'third', l: 'Some of their data belongs to the county or another agency', st: 'unk', m: 'That agency has to approve sharing it, not this one.' },
-      ] },
-      { id: 'h_agree', ask: 'What signed agreement do they need, and which data can be shared?', a: [
-        { id: 'fl', l: 'They’re in Florida', st: 'pend', m: 'Our CA handles it. A {3PA} is the preferred agreement.', do: 'CA: confirm sharing process' },
-        { id: 'other', l: 'Somewhere else', st: 'pend', m: 'Our CA and Legal handle the agreement.', do: 'CA / Legal: route sharing agreement' },
-        { id: 'exec', l: 'Agreement already signed', st: 'ok', m: 'Check who signed and what it covers.' },
-        { id: 'pend', l: 'Not signed, or refused', st: 'unk', m: 'No sharing until signed.' },
-      ] },
-    ],
-  },
-  {
-    id: 'changes', n: 13, title: 'Changes coming', sub: 'Anything in the next year or so that would undo today’s answers.',
+    id: 'changes', n: 12, title: 'Changes coming', sub: 'Anything in the next year or so that would undo today’s answers.',
     q: [
       { id: 'x_changes', ask: 'Switching CAD/RMS vendors, moving servers to the cloud, new network, new IT staff, new login system?', a: [
         { id: 'none', l: 'Nothing planned', st: 'ok', m: 'Done.' },
@@ -423,7 +406,6 @@ export const TERMS = {
   'FDLE': 'Florida Department of Law Enforcement. Florida agencies need FDLE paperwork before data can go to a cloud vendor like us.',
   'CLETS': 'California’s law-enforcement data network. California agencies have their own approval steps.',
   'MOU': 'Memorandum of understanding. A signed letter between two agencies, for one specific thing, like sharing fingerprint results.',
-  '3PA': 'Third-party agreement. The contract that lets one agency’s data be shown to another agency.',
   'SAML': 'The standard behind cloud single sign-on (Entra, Okta, ADFS). Works over the internet, so no network link needed.',
   'LDAP': 'Older login system that runs on an on-prem server. We’d need a network link to it and a service login.',
   'OIDC': 'A newer single sign-on standard. We haven’t documented support for it.',
