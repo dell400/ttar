@@ -4,10 +4,10 @@
 
 export const SECTIONS = [
   {
-    id: 'system', n: 1, title: 'The server', sub: 'Their CAD or RMS data sits in a database on a server. Find out which server, and who owns the building it sits in.',
+    id: 'system', n: 1, title: 'The server', sub: 'Their CAD or RMS data sits in a database on a server. Find out which server, and whether it’s on-prem or in the cloud.',
     q: [
-      { id: 'host', ask: 'Where is the server that holds the data? In their own building or data center, or in the vendor’s cloud?', a: [
-        { id: 'onprem', l: 'Their own server, in their building or data center', st: 'pend', m: 'Our servers can’t reach theirs until a network link is set up: an {IPSec} tunnel or {Peregrine Connect}.', go: 'network' },
+      { id: 'host', ask: 'Where is the server that holds the data? On-prem, or in the vendor’s cloud?', a: [
+        { id: 'onprem', l: 'On-prem (their own server)', st: 'pend', m: 'Our servers can’t reach theirs until a network link is set up: an {IPSec} tunnel or {Peregrine Connect}.', go: 'network' },
         { id: 'cloud', l: 'The vendor hosts it in their cloud', st: 'ok', m: 'No network link needed. The vendor is the one who can give us access.', go: 'approval' },
         { id: 'third', l: 'The county or another agency hosts it', st: 'unk', m: 'The people in this meeting don’t control the server. Find out who does and who can approve access.', go: 'approval' },
         { id: 'hybrid', l: 'Split across more than one place', st: 'pend', m: 'Each server is its own set of questions. Go through them one at a time.' },
@@ -22,7 +22,7 @@ export const SECTIONS = [
     ],
   },
   {
-    id: 'network', n: 2, title: 'Network link', sub: 'Only if the server is in their building. How our servers will talk to theirs.',
+    id: 'network', n: 2, title: 'Network link', sub: 'Only if the server is on-prem. How our servers will talk to theirs.',
     q: [
       { id: 'n_owner', ask: 'Who manages their firewall and network? Have they ever let an outside company connect in before?', a: [
         { id: 'exp', l: 'Network person is here and has done it before', st: 'ok', m: 'Write down their name and how they did it last time.' },
@@ -310,7 +310,7 @@ export const SECTIONS = [
       { id: 's_how', ask: 'How do their staff log in to work computers and apps today? Microsoft Entra, Okta, ADFS ({SAML})? Old-style Active Directory ({LDAP})?', a: [
         { id: 'saml', l: 'Entra, Okta or ADFS', st: 'ok', m: 'Cloud login. Easy. No network link needed.' },
         { id: 'adsaml', l: '“Active Directory” that syncs to Microsoft cloud', st: 'ok', m: 'That counts as Entra. Easy. No network link needed.' },
-        { id: 'adldap', l: '“Active Directory” on a server in their building only', st: 'pend', m: 'We need a network link to that server and a service login. Harder.' },
+        { id: 'adldap', l: '“Active Directory” on-prem only', st: 'pend', m: 'We need a network link to that server and a service login. Harder.' },
         { id: 'ldap', l: 'Some other LDAP directory', st: 'pend', m: 'We need a network link to that server and a service login. Harder.' },
         { id: 'none', l: 'Nothing, everyone has local passwords', st: 'unk', m: 'Peregrine can manage logins, if their security allows it. Confirm.' },
         { id: 'oidc', l: 'Something called {OIDC}', st: 'unk', m: 'We haven’t documented support. Confirm.', do: 'Collab / Solutions: confirm OIDC support' },
@@ -380,8 +380,8 @@ export const ANY = [
 
 // What combinations mean. Each rule gets the answer map and returns text or null.
 export const COMBOS = [
-  { st: 'no', t: (a) => a.host === 'onprem' && a.n_method === 'none' && 'Server is in their building but they won’t allow a permanent connection. Only option is them sending files, and Engineering has to confirm that works.' },
-  { st: 'no', t: (a) => a.host === 'onprem' && (a.n_run === 'nobody' || a.n_plan === 'none') && 'Server is in their building and nobody can set up the network link. We can’t reach the database yet. Networking consult first.' },
+  { st: 'no', t: (a) => a.host === 'onprem' && a.n_method === 'none' && 'Server is on-prem but they won’t allow a permanent connection. Only option is them sending files, and Engineering has to confirm that works.' },
+  { st: 'no', t: (a) => a.host === 'onprem' && (a.n_run === 'nobody' || a.n_plan === 'none') && 'Server is on-prem and nobody can set up the network link. We can’t reach the database yet. Networking consult first.' },
   { st: 'pend', t: (a) => a.host === 'onprem' && a.n_method === 'ipsec' && 'IPSec means their firewall team does the work. Nothing moves until they name who.' },
   { st: 'pend', t: (a) => a.host === 'onprem' && a.n_method === 'connect' && 'Connect means they run our VM. Nothing moves until someone confirms they have a place to run it.' },
   { st: 'unk', t: (a) => a.host === 'cloud' && (a.method === 'none' || a.method === 'ui') && 'Vendor hosts the server and there’s no database login or API. Everything depends on the vendor.' },
@@ -392,7 +392,7 @@ export const COMBOS = [
   { st: 'no', t: (a) => a.f_type === 'recur' && a.f_sched === 'noowner' && 'Daily files but no schedule and nobody owns it. This will break.' },
   { st: 'no', t: (a) => (a.v_what || a.v_commit) && (a.v_cost === 'unk' || a.v_cost === 'peregrine' || a.v_cost === 'rej') && 'Vendor has to do work and nobody knows who pays. Stalled until that’s settled.' },
   { st: 'no', t: (a) => (a.v_commit === 'refuse' || a.auth === 'deny' || a.v_what === 'deny') && 'Someone said no to access. Tell your AE right after the call.' },
-  { st: 'pend', t: (a) => (a.s_how === 'adldap' || a.s_how === 'ldap') && a.host !== 'onprem' && 'Their login server is in their building but there’s no network link planned. User login needs one. Add the link or switch to cloud login.' },
+  { st: 'pend', t: (a) => (a.s_how === 'adldap' || a.s_how === 'ldap') && a.host !== 'onprem' && 'Their login server is on-prem but there’s no network link planned. User login needs one. Add the link or switch to cloud login.' },
   { st: 'pend', t: (a) => (a.s_how === 'adldap' || a.s_how === 'ldap') && a.host === 'onprem' && 'User login depends on the same network link as the database. If the link stalls, nobody can log in.' },
   { st: 'pend', t: (a) => a.c_contact === 'block' && 'Their security office blocks everything until they approve. Plan the technical work, connect nothing yet.' },
   { st: 'pend', t: (a) => a.c_steps === 'fl' && 'Florida. FDLE paperwork and fingerprinting come before access. Start them now.' },
@@ -407,6 +407,7 @@ export const COMBOS = [
 export const TERMS = {
   'DBA': 'Database administrator. The person at the agency who manages the database server and can create logins.',
   'IPSec': 'A permanent encrypted tunnel between their firewall and ours. Their firewall team sets it up. Nothing to install on a server.',
+  'on-prem': 'On their own hardware, in their own building or data center. The opposite of the vendor hosting it in the cloud.',
   'Peregrine Connect': 'A small virtual machine we give them to run inside their network. It reaches out to us; nothing comes in. Alternative to IPSec.',
   'VM': 'Virtual machine. A computer that runs as software inside a bigger server. Most IT shops have somewhere to run one.',
   'read-only': 'A login that can read data but never change it. Still uses some of the server’s power.',
@@ -424,7 +425,7 @@ export const TERMS = {
   'MOU': 'Memorandum of understanding. A signed letter between two agencies, for one specific thing, like sharing fingerprint results.',
   '3PA': 'Third-party agreement. The contract that lets one agency’s data be shown to another agency.',
   'SAML': 'The standard behind cloud single sign-on (Entra, Okta, ADFS). Works over the internet, so no network link needed.',
-  'LDAP': 'Older login system that runs on a server in their building. We’d need a network link to it and a service login.',
+  'LDAP': 'Older login system that runs on an on-prem server. We’d need a network link to it and a service login.',
   'OIDC': 'A newer single sign-on standard. We haven’t documented support for it.',
   'MFA': 'Multi-factor authentication. A code or app prompt after the password.',
   'Force AuthN': 'A setting that makes each person log in fresh instead of inheriting whoever used the computer last. Needed for shared computers.',

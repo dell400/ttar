@@ -1,4 +1,5 @@
-import { SECTIONS, ANY, COMBOS, TERMS } from './data.js';
+// Always fetch fresh content so edits to data.js show up on reload.
+const { SECTIONS, ANY, COMBOS, TERMS } = await import('./data.js?t=' + Date.now());
 
 const KEY = 'ttar.v2';
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
@@ -15,6 +16,8 @@ const worst = (sts) => sts.length ? sts.reduce((w, s) => (RANK[s] > RANK[w] ? s 
 const byId = Object.fromEntries(SECTIONS.map((s) => [s.id, s]));
 const Q = Object.fromEntries(SECTIONS.flatMap((s) => s.q.map((q) => [q.id, q])));
 const pick = (q) => q.a.find((x) => x.id === A[q.id]);
+const ORDER = { ok: 0, pend: 1, no: 2, unk: 3 };
+const sorted = (q) => [...q.a].sort((x, y) => ORDER[x.st] - ORDER[y.st]);
 
 const secState = (sec) => worst(sec.q.map(pick).filter(Boolean).map((a) => a.st));
 const relevant = (sec) => !(sec.id === 'network' && A.host && A.host !== 'onprem' && A.host !== 'hybrid' && !Object.values(A).includes('priv'));
@@ -23,7 +26,7 @@ function header() {
   return `<div class="top"><div class="wrap">
     <div class="titlebar"><h1>TTAR</h1><p>Pick what the IT team says. See what it means.</p>
       <div class="ctl"><button data-act="all" aria-pressed="${showAll}">Show all meanings</button><button data-act="reset">Reset</button></div></div>
-    <nav class="map" aria-label="Sections">${SECTIONS.map((s) => `<button data-act="jump" data-v="${s.id}"><span class="st ${secState(s) || 'none'}"></span>${esc(s.title)}</button>`).join('')}</nav>
+    <nav class="map" aria-label="Sections">${SECTIONS.map((s) => `<button class="${secState(s) || ''}" data-act="jump" data-v="${s.id}">${esc(s.title)}</button>`).join('')}</nav>
   </div></div>`;
 }
 
@@ -40,16 +43,15 @@ function question(q) {
   const sel = pick(q);
   return `<div class="q">
     <p class="ask">${gloss(q.ask)}</p>
-    <div class="chips" role="group">${q.a.map((a) => `<button class="chip ${a.st}" data-act="pick" data-q="${q.id}" data-v="${a.id}" aria-pressed="${sel?.id === a.id}" title="${esc(a.m)}"><span class="st ${a.st}"></span>${esc(a.l)}</button>`).join('')}</div>
+    <div class="chips" role="group">${sorted(q).map((a) => `<button class="chip ${a.st}" data-act="pick" data-q="${q.id}" data-v="${a.id}" aria-pressed="${sel?.id === a.id}" title="${esc(a.m)}">${esc(a.l)}</button>`).join('')}</div>
     ${sel ? answerPanel(sel) : ''}
-    ${showAll ? `<ul class="all">${q.a.map((a) => `<li><span class="st ${a.st}"></span><span><b>${esc(a.l)}.</b> ${gloss(a.m)}${a.go ? ` <i>→ ${esc(byId[a.go].title)}</i>` : ''}</span></li>`).join('')}</ul>` : ''}
+    ${showAll ? `<ul class="all">${sorted(q).map((a) => `<li class="${a.st}"><span><b>${esc(a.l)}.</b> ${gloss(a.m)}${a.go ? ` <i>→ ${esc(byId[a.go].title)}</i>` : ''}</span></li>`).join('')}</ul>` : ''}
   </div>`;
 }
 
 function section(s) {
-  const st = secState(s);
   return `<section class="sec ${relevant(s) ? '' : 'dim'}" id="s-${s.id}">
-    <div class="num ${st || 'none'}">${s.n}</div>
+    <div class="num">${s.n}</div>
     <h2>${esc(s.title)}</h2><p class="sub">${esc(s.sub)}</p>
     ${s.q.map(question).join('')}
     ${s.notes ? `<details class="notes"><summary>Vendor notes</summary>${s.notes.map(([v, rows]) => `<div class="vend">${esc(v)}</div><table>${rows.map(([k, m]) => `<tr><td>${esc(k)}</td><td>${esc(m)}</td></tr>`).join('')}</table>`).join('')}</details>` : ''}
@@ -62,17 +64,17 @@ function rail() {
   const any = anySel != null ? ANY[anySel] : null;
   return `<aside class="rail">
     <div class="panel"><h3>What it adds up to</h3>
-      ${combos.length ? `<ul>${combos.map((c) => `<li><span class="st ${c.st}"></span><span>${esc(c.t)}</span></li>`).join('')}</ul>` : '<p class="empty">Pick answers and the combinations show up here.</p>'}
+      ${combos.length ? `<ul>${combos.map((c) => `<li class="${c.st}">${esc(c.t)}</li>`).join('')}</ul>` : '<p class="empty">Pick answers and the combinations show up here.</p>'}
     </div>
     <div class="panel"><h3>After the call</h3>
-      ${todo.length ? `<ul>${todo.map((t) => `<li><span class="st todo"></span><span>${esc(t)}</span></li>`).join('')}</ul>` : '<p class="empty">Nothing yet.</p>'}
+      ${todo.length ? `<ul>${todo.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : '<p class="empty">Nothing yet.</p>'}
     </div>
     <div class="panel any"><h3>If they say…</h3>
       <div class="chips">${ANY.map((x, i) => `<button class="chip" data-act="any" data-v="${i}" aria-pressed="${anySel === i}">${esc(x.l)}</button>`).join('')}</div>
       ${any ? `<div class="mean"><p>${esc(any.m)}</p><p class="say"><span class="lab">Say</span>“${esc(any.say)}”</p></div>` : ''}
     </div>
     <div class="panel aux"><h3>Legend</h3>
-      <ul><li><span class="st ok"></span>Good</li><li><span class="st pend"></span>Needs confirmation</li><li><span class="st unk"></span>Unknown</li><li><span class="st no"></span>Blocked</li></ul>
+      <div class="chips"><span class="chip ok">Good</span><span class="chip pend">Needs confirmation</span><span class="chip no">Blocked</span><span class="chip unk">Unknown</span></div>
     </div>
     <div class="panel aux"><h3>Terms</h3>
       <div class="terms">${Object.entries(TERMS).map(([k, v]) => `<div><b>${esc(k)}</b> <span>${esc(v)}</span></div>`).join('')}</div>
